@@ -1,2 +1,2 @@
-This is the first version of the code for an offline password manager application. Currently, version 2 is being written using all 
-I have learned in the past months.  
+A completely offline password manager application written in Python 3.7 with Tkinter GUI. Currently working on encryption and
+security of the functioning program.
