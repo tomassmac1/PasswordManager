@@ -1,12 +1,11 @@
 try:
     # Python2
-    import Tkinter as Tk
+    import Tkinter as tk
 except ImportError:
     # Python3
     import tkinter as tk
 import tkinter.messagebox
 from random import randint
-from secrets import randbelow
 import json
 import os.path
 import os
@@ -23,12 +22,12 @@ class GUI:
         self.diction = list()
         self.new_password = str()
         self.current_user = str()
+        self.new_user = str()
 
         frame = tk.Frame(self.master, width=50, bg="white")
         frame.grid(column=0, row=0, sticky=(tk.N, tk.W, tk.E, tk.S))
         frame.columnconfigure(0, weight=1)
         frame.rowconfigure(0, weight=1)
-        #frame.pack(padx=100, pady=50)
         user_label = tk.Label(frame, text="Username", bg="white", fg="black")
         self.user_entry = tk.Entry(frame, textvariable=tk.StringVar)
         pass_label = tk.Label(frame, text="Password", bg="white", fg="black")
@@ -74,27 +73,27 @@ class GUI:
         else:
             self.users = []
 
-    def validation(self):
+    def validation(self) -> None:
 
         inp = self.user_entry.get()
         pwd = self.password_entry.get()
-        self.check_user = InputValidation.initialise(inp, str, True, 1, 40, True)
-        self.check_pwd = InputValidation.initialise(pwd, str, True, 1, 40, True)
-        if self.check_user == True:
-            if self.check_pwd == True:
+        check_user = InputValidation.initialise(inp, str, True, 1, 40, True)
+        check_pwd = InputValidation.initialise(pwd, str, True, 1, 40, True)
+        if check_user:
+            if check_pwd:
                 self.login()
         else:
             tkinter.messagebox.showerror("Error!", "Invalid input.")
 
-    def call_new_users(self):
+    def call_new_users(self) -> None:
 
-        self.new_window = tk.Toplevel(self.master)
-        self.new_user = NewUser(self.new_window)
+        new_window = tk.Toplevel(self.master)
+        self.new_user = NewUser(new_window)
 
-    def call_main_menu(self):
+    def call_main_menu(self) -> None:
 
-        self.new_window = tk.Toplevel(self.master)
-        self.main_menu = MainMenu(self.new_window, self.current_user, self.diction, self.users)
+        new_window = tk.Toplevel(self.master)
+        main_menu = MainMenu(new_window, self.current_user, self.diction, self.users)
 
     @staticmethod
     def format(element: any, option: str) -> None:
@@ -198,10 +197,10 @@ class NewUser:
 
         inp = self.new_user_entry.get()
         pwd = self.new_password_entry.get()
-        check_user = InputValidation.initialise(inp, str, True, 1, 40, True)
-        check_pwd = InputValidation.initialise(pwd, str, True, 1, 40, True)
-        if check_user == True:
-            if check_pwd == True:
+        check_user: bool = InputValidation.initialise(inp, str, True, 1, 40, True)
+        check_pwd: bool = InputValidation.initialise(pwd, str, True, 1, 40, True)
+        if check_user:
+            if check_pwd:
                 self.dump()
         else:
             tkinter.messagebox.showerror("Error!", "Invalid input.")
@@ -252,9 +251,6 @@ class MainMenu:
         self.current_user = current_user
         self.diction = diction
         self.users = users
-        #self.frame.pack()
-        #self.mainframe = tk.Toplevel(width=400, height=400, bg="white")
-        #self.mainframe.config(padx=20, pady=20)
 
         generator_image = Image.open("Images/gear.png")
         generator_image = generator_image.resize((100, 100), Image.ANTIALIAS)
@@ -294,8 +290,8 @@ class MainMenu:
     def caller(self, class_name):
 
         diction = self.pass_get()
-        self.new_window = tk.Toplevel(self.master)
-        self.next = class_name(self.new_window, self.current_user, diction, self.users)
+        new_window = tk.Toplevel(self.master)
+        called = class_name(new_window, self.current_user, diction, self.users)
 
     def pass_get(self):
 
@@ -336,9 +332,8 @@ class Generator:
         self.diction = diction
         self.users = users
         self.current_user = current_user
+        self.new_password = list()
         self.create_frame(self.master)
-        #self.gen_frame = Toplevel(width=400, height=400, bg="white")
-        #self.gen_frame.config(padx=20, pady=20)
 
     def create_frame(self, master):
 
@@ -384,8 +379,8 @@ class Generator:
             if type(new_password_length) == int:
                 if new_password_length < 6:
                     tkinter.messagebox.showerror("Error!", "Invalid entry. Password must be greater than 6 chars.")
-                    self.new_window = tk.Toplevel(self.master)
-                    self.next = Generator(self.new_window, self.current_user, self.diction, self.users)
+                    new_window = tk.Toplevel(self.master)
+                    called = Generator(new_window, self.current_user, self.diction, self.users)
                 else:
                     self.generate(new_password_length)
                     self.master.destroy()
@@ -477,8 +472,6 @@ class Adder:
         self.users = users
         self.master = master
         self.frame = tk.Frame(self.master, bg="white")
-        #self.add_frame = tk.Toplevel(width=400, height=400, bg="white")
-        #self.add_frame.config(padx=20, pady=20)
         add_pass_ref_label = tk.Label(self.master, text="Password Reference", bg="white", fg="black")
         add_pass_ref_label.grid(row=2, column=0, sticky=tk.E)
         self.add_pass_ref = tk.Entry(self.master, textvariable=tk.StringVar)
@@ -533,7 +526,7 @@ class Adder:
         elif t is False:
             tkinter.messagebox.showinfo("Error!", "Password needs at least one special character!")
             self.master.destroy()
-        elif self.diction == []:
+        elif not self.diction:
             data = {new_ref: new_pass}
             self.diction.append(data)
             tkinter.messagebox.showinfo("Yay!", "Password Added.")
@@ -546,7 +539,7 @@ class Adder:
                     total += 1
             if total > 0:
                 tkinter.messagebox.showinfo("Oi!",
-                                                        "Reference already taken, select 'edit password' instead.")
+                                            "Reference already taken, select 'edit password' instead.")
                 self.master.destroy()
             else:
                 if len(new_ref) > 40 or len(new_pass) > 40:
@@ -577,11 +570,10 @@ class Updater:
         self.current_user = current_user
         self.master = master
         self.diction = diction
+        self.change_ref = str()
         if len(self.diction) == 0:
             tkinter.messagebox.showinfo("Empty!", "No stored data!")
         else:
-            #self.update_frame = tk.Toplevel(width=400, height=400, bg="white")
-            #self.update_frame.config(padx=20, pady=20)
             self.frame = tk.Frame(self.master, bg="white")
             add_pass_ref_label = tk.Label(self.master, text="Password Reference (L for List of refs)",
                                           bg="white")
@@ -661,12 +653,12 @@ class Updater:
                                    lambda event, element=self.update_go_button, func=self.update_4_realz:
                                    self.sunken(element, func))
         self.update_go_button.bind("<Enter>", lambda event, element=self.update_go_button:
-        self.raised(element))
+                                   self.raised(element))
         self.update_go_button.bind("<Leave>", lambda event, element=self.update_go_button:
-        self.flat(element))
+                                   self.flat(element))
         self.update_go_button.grid(row=3, column=1)
         self.new_pass_2.bind("<Return>", lambda event, element=self.update_go_button, func=self.update_4_realz:
-        self.sunken(element, func))
+                             self.sunken(element, func))
 
     def update_4_realz(self) -> None:
 
@@ -703,8 +695,6 @@ class Searcher:
         self.current_user = current_user
         self.users = users
         self.frame = tk.Frame(self.master, bg="white")
-        #self.retrieve_frame = tk.Toplevel(width=400, height=400, bg="white")
-        #self.retrieve_frame.config(padx=20, pady=20)
         search_ref_label = tk.Label(self.master, text="Password Reference (L to List All)", bg="white")
         self.pass_ref = tk.Entry(self.master, textvariable=tk.StringVar)
         search_ref_label.grid(row=2, column=0, sticky=tk.E)
@@ -763,12 +753,6 @@ class Searcher:
                 tkinter.messagebox.showinfo("No matches!", "No matches found.")
                 self.master.destroy()
 
-
-#window = tk.Tk()
-#window.configure(background="white")
-#window.title("Gashlane")
-#b = GUI(window)
-#window.mainloop()
 
 root = tk.Tk()
 root.configure(background="white")
