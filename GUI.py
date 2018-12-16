@@ -1,6 +1,6 @@
 try:
     # Python2
-    import Tkinter as tk
+    import Tkinter as Tk
 except ImportError:
     # Python3
     import tkinter as tk
@@ -11,7 +11,6 @@ import json
 import os.path
 import os
 from PIL import Image, ImageTk
-from hashlib import pbkdf2_hmac as hl
 import InputValidation
 
 
