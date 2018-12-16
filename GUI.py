@@ -271,14 +271,14 @@ class MainMenu:
         self.img12 = ImageTk.PhotoImage(search_image)
         search_button = tk.Label(self.master, image=self.img12, bg="white")
         search_button.grid(row=0, column=0, sticky=tk.NSEW)
-        search_button.bind("<Button-1>", lambda event: self.searcher_if)
+        search_button.bind("<Button-1>", self.searcher_if)
 
         clear_img = Image.open("Images/clear.png")
         clear_img = clear_img.resize((30, 30), Image.ANTIALIAS)
         self.img13 = ImageTk.PhotoImage(clear_img)
         clear_button = tk.Label(self.master, image=self.img13, bg="white")
         clear_button.grid(row=2, column=2, sticky=tk.NSEW)
-        clear_button.bind("<Button-1>", lambda event: self.clearer)
+        clear_button.bind("<Button-1>", self.clearer)
 
         up_img = Image.open("Images/edit.png")
         up_img = up_img.resize((50, 30), Image.ANTIALIAS)
@@ -308,7 +308,7 @@ class MainMenu:
                     self.diction = []  # if password directory doesnt exist, empty list set
         return self.diction
 
-    def searcher_if(self):
+    def searcher_if(self, event):
 
         diction = self.pass_get()
         if len(diction) == 0:
@@ -316,12 +316,20 @@ class MainMenu:
         else:
             self.caller(Searcher)
 
-    def clearer(self):
+    def clearer(self, event):
 
         clear_4_realz = tkinter.messagebox.askquestion("Sure?", "Are you sure?")
         if clear_4_realz == "yes":
             self.diction = []
+            self.dump()
             tkinter.messagebox.showinfo("Done.", 'Passwords cleared.')
+
+    def dump(self):
+
+        for key, v in [(key, v) for item in self.users for (key, v) in item.items()]:
+            if key == self.current_user:
+                with open("Data/" + v[1], 'w+') as f:
+                    json.dump(self.diction, f)
 
 
 class Generator:
@@ -617,7 +625,6 @@ class Updater:
         if len(ref) == 0:
             tkinter.messagebox.showinfo("Error!", "Nothing entered.")
             self.master.destroy()
-            self.__init__(self.master, self.current_user, self.diction, self.users)
         elif ref == "L" or ref == "l":
             all_keys = []
             for key, v in [(key, v) for item in self.diction for (key, v) in item.items()]:
@@ -699,7 +706,7 @@ class Searcher:
         self.pass_ref = tk.Entry(self.master, textvariable=tk.StringVar)
         search_ref_label.grid(row=2, column=0, sticky=tk.E)
         self.pass_ref.grid(row=2, column=1)
-        image9 = Image.open("go_arrow.png")
+        image9 = Image.open("Images\go_arrow.png")
         image9 = image9.resize((25, 25), Image.ANTIALIAS)
         self.img9 = ImageTk.PhotoImage(image9)
         self.continue_button = tk.Label(self.master, image=self.img9, bg="white")
@@ -740,10 +747,9 @@ class Searcher:
             all_keys = '--'.join(str(keyz) for keyz in all_keys)
             tkinter.messagebox.showinfo("Refs", all_keys)
             self.master.destroy()
-            self.__init__(self.master, self.current_user, self.diction, self.users)
         else:
             for key, v in [(key, v) for item in self.diction for (key, v) in item.items()]:
-                if key == self.pass_ref:
+                if key == pass_ref:
                     tkinter.messagebox.showinfo("Password Found!", key + " : " + v)
                     self.master.destroy()
                     # if password found, reference and password are printed
