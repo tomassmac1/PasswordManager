@@ -6,11 +6,13 @@ except ImportError:
     import tkinter as tk
 import tkinter.messagebox
 from random import randint
+from secrets import randbelow
 import json
 import os.path
 import os
 from PIL import Image, ImageTk
-import bcrypt
+from hashlib import pbkdf2_hmac as hl
+import InputValidation
 
 
 class GUI:
@@ -32,7 +34,7 @@ class GUI:
         self.user_entry = tk.Entry(frame, textvariable=tk.StringVar)
         pass_label = tk.Label(frame, text="Password", bg="white", fg="black")
         self.password_entry = tk.Entry(frame, show="*", textvariable=tk.StringVar)
-        self.password_entry.bind("<Return>", lambda event, func=self.login: func())
+        self.password_entry.bind("<Return>", lambda event, func=self.validation: func())
         login_button = tk.Label(frame, text="", bg='white')
         self.new_user_button = tk.Label(frame, text="New User?", fg='blue', bg='white')
         self.new_user_button.bind("<Button-1>", lambda event, element=self.new_user_button, func=self.call_new_users:
@@ -57,7 +59,7 @@ class GUI:
         self.img2 = ImageTk.PhotoImage(self.image2)
         self.panel2 = tk.Label(frame, image=self.img2, bg="white")
         self.panel2.grid(row=4, column=1)
-        self.panel2.bind("<Button-1>", lambda event, element=self.panel2, func=self.login:
+        self.panel2.bind("<Button-1>", lambda event, element=self.panel2, func=self.validation:
                          self.sunken(element, func))
         self.panel2.bind("<Enter>", lambda event, element=self.panel2:
                          self.raised(element))
@@ -72,6 +74,18 @@ class GUI:
                     self.users = []
         else:
             self.users = []
+
+    def validation(self):
+
+        inp = self.user_entry.get()
+        pwd = self.password_entry.get()
+        self.check_user = InputValidation.initialise(inp, str, True, 1, 40, True)
+        self.check_pwd = InputValidation.initialise(pwd, str, True, 1, 40, True)
+        if self.check_user == True:
+            if self.check_pwd == True:
+                self.login()
+        else:
+            tkinter.messagebox.showerror("Error!", "Invalid input.")
 
     def call_new_users(self):
 
@@ -157,7 +171,7 @@ class NewUser:
         self.img3 = ImageTk.PhotoImage(self.image3)
         self.save_button = tk.Label(self.frame, image=self.img3, bg="white")
         self.save_button.grid(row=5, column=1)
-        self.save_button.bind("<Button-1>", lambda event, element=self.save_button, func=self.dump:
+        self.save_button.bind("<Button-1>", lambda event, element=self.save_button, func=self.validation:
                               self.sink_and_call(element, func))
         self.save_button.bind("<Enter>", lambda event, element=self.save_button, option="raised":
                               self.format(element, option))
@@ -168,7 +182,7 @@ class NewUser:
         new_pass_label = tk.Label(self.frame, text="Password", bg="white")
         new_pass_label.grid(row=2, column=0, sticky=tk.E)
         self.new_password_entry = tk.Entry(self.frame, textvariable=tk.StringVar)
-        self.new_password_entry.bind("<Return>", lambda event, element=self.save_button, func=self.dump:
+        self.new_password_entry.bind("<Return>", lambda event, element=self.save_button, func=self.validation:
                                      self.sink_and_call(element, func))
         self.new_password_entry.grid(row=2, column=1)
 
@@ -181,29 +195,42 @@ class NewUser:
         else:
             self.users = []
 
+    def validation(self):
+
+        inp = self.new_user_entry.get()
+        pwd = self.new_password_entry.get()
+        check_user = InputValidation.initialise(inp, str, True, 1, 40, True)
+        check_pwd = InputValidation.initialise(pwd, str, True, 1, 40, True)
+        if check_user == True:
+            if check_pwd == True:
+                self.dump()
+        else:
+            tkinter.messagebox.showerror("Error!", "Invalid input.")
+
     def dump(self) -> None:  # Handles writing a new user's info to file.
-            new_user_input = self.new_user_entry.get()
-            new_password = self.new_password_entry.get()
-            count = 0
-            match = 0
-            for key, v in [(key, v) for item in self.users for (key, v) in item.items()]:
-                if new_user_input == key:
-                    match += 1
-                else:
-                    count += 1
-            if match > 0:
-                tkinter.messagebox.showinfo("Alert!", "Username already exists.")
-                self.master.destroy()
-            elif count == len(self.users):  # if looped through list and no matches found...
-                number = len(self.users) + 1
-                filename = "PassDict" + str(number) + '.JSON'
-                self.users.append(
-                    {new_user_input: [new_password, filename]})
-                tkinter.messagebox.showinfo("Success!", "Username and password saved.")
-                with open('Data/UserDirectory', 'w+') as fp:
-                    json.dump(self.users, fp)  # dumping to UserDirectory file. 'W+' method creates...
-                # ...file if one is not found
-                self.master.destroy()
+
+        new_user_input = self.new_user_entry.get()
+        new_password = self.new_password_entry.get()
+        count = 0
+        match = 0
+        for key, v in [(key, v) for item in self.users for (key, v) in item.items()]:
+            if new_user_input == key:
+                match += 1
+            else:
+                count += 1
+        if match > 0:
+            tkinter.messagebox.showinfo("Alert!", "Username already exists.")
+            self.master.destroy()
+        elif count == len(self.users):  # if looped through list and no matches found...
+            number = len(self.users) + 1
+            filename = "PassDict" + str(number) + '.JSON'
+            self.users.append(
+                {new_user_input: [new_password, filename]})
+            tkinter.messagebox.showinfo("Success!", "Username and password saved.")
+            with open('Data/UserDirectory', 'w+') as fp:
+                json.dump(self.users, fp)  # dumping to UserDirectory file. 'W+' method creates...
+            # ...file if one is not found
+            self.master.destroy()
 
     @staticmethod
     def format(element: any, option: str) -> None:
